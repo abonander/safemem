@@ -13,7 +13,7 @@ macro_rules! len_check (
     ($slice:expr, $start:ident, $len:ident) => {
         assert!(
             $start.checked_add($len)
-                .expect(concat!("Overflow evaluating ", strigify!($start + $len)))
+                .expect(concat!("Overflow evaluating ", stringify!($start + $len)))
                 <= $slice.len(),
             "Length {} starting at {} is out of bounds (slice len {}).", $len, $start, $slice.len()
         )
