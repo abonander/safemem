@@ -1,11 +1,22 @@
 //! Safe wrappers for memory-accessing functions like `std::ptr::copy()`.
 use std::ptr;
 
-macro_rules! bounds_check (
+macro_rules! idx_check (
     ($slice:expr, $idx:expr) => {
         assert!($idx < $slice.len(),
             concat!("`", stringify!($idx), "` ({}) out of bounds. Length: {}"),
             $idx, $slice.len());
+    }
+);
+
+macro_rules! len_check (
+    ($slice:expr, $start:ident, $len:ident) => {
+        assert!(
+            $start.checked_add($len)
+                .expect(concat!("Overflow evaluating ", strigify!($start + $len)))
+                <= $slice.len(),
+            "Length {} starting at {} is out of bounds (slice len {}).", $len, $start, $slice.len()
+        )
     }
 );
 
@@ -14,15 +25,14 @@ macro_rules! bounds_check (
 /// Safe wrapper for `memmove()`/`std::ptr::copy()`.
 ///
 /// ###Panics
-/// If either `src_idx` or `dest_idx` are out of bounds, or if either of these plus `len` is out of
+/// * If either `src_idx` or `dest_idx` are out of bounds, or if either of these plus `len` is out of
 /// bounds.
+/// * If `src_idx + len` or `dest_idx + len` overflows.
 pub fn copy<T: Copy>(slice: &mut [T], src_idx: usize, dest_idx: usize, len: usize) {
-    bounds_check!(slice, src_idx);
-    bounds_check!(slice, dest_idx);
-    bounds_check!(slice, src_idx + len);
-    bounds_check!(slice, dest_idx + len);
-
-    if src_idx == dest_idx { return };
+    idx_check!(slice, src_idx);
+    idx_check!(slice, dest_idx);
+    len_check!(slice, src_idx, len);
+    len_check!(slice, dest_idx, len);
 
     let src_ptr: *const T = &slice[src_idx];
     let dest_ptr: *mut T = &mut slice[dest_idx];
