@@ -44,7 +44,7 @@ pub fn copy_over<T: Copy>(slice: &mut [T], src_idx: usize, dest_idx: usize, len:
     let ptr = slice.as_mut_ptr();
 
     unsafe {
-        ptr::copy(ptr.add(src_idx), ptr.add(dest_idx), len);
+        ptr::copy(ptr.offset(src_idx as isize), ptr.offset(dest_idx as isize), len);
     }
 }
 
@@ -113,4 +113,3 @@ mod tests {
         assert_eq!(vec, &[1, 2, 3, 4, 5]);
     }
 }
-
