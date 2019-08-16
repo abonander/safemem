@@ -1,6 +1,8 @@
 # safemem ![Travis (.org)](https://img.shields.io/travis/abonander/safemem)
 Safe wrappers for `memmove`, `memset`, etc. in Rust
 
+##### Minimum Supported Rust Version: 1.19.0
+
 `no_std` Support
 ----------------
 
