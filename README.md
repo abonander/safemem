@@ -1,4 +1,4 @@
-# safemem
+# safemem ![Travis (.org)](https://img.shields.io/travis/abonander/safemem)
 Safe wrappers for `memmove`, `memset`, etc. in Rust
 
 `no_std` Support
