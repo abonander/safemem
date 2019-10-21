@@ -9,3 +9,5 @@ rust:
 script:
   - cargo build --verbose
   - cargo test --verbose
+  - sh ./run_miri.sh
+
