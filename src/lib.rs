@@ -77,7 +77,7 @@ pub fn prepend<T: Copy>(elems: &[T], vec: &mut Vec<T>) {
     } else {
         // Our overflow check occurs here, no need to do it ourselves.
         vec.reserve(elems_len);
-        let ptr = Vec::as_mut_ptr(vec);
+        let ptr = vec.as_mut_ptr();
         unsafe {
             // Move the old elements down to the end.
             ptr::copy(
