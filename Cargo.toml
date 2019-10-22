@@ -1,6 +1,6 @@
 [package]
 name = "safemem"
-version = "0.3.2"
+version = "0.3.3"
 authors = ["Austin Bonander <austin.bonander@gmail.com>"]
 
 description = "Safe wrappers for memory-accessing functions, like `std::ptr::copy()`."
