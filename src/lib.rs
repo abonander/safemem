@@ -49,7 +49,7 @@ pub fn copy_over<T: Copy>(slice: &mut [T], src_idx: usize, dest_idx: usize, len:
     let ptr = slice.as_mut_ptr();
 
     unsafe {
-        ptr::copy(ptr.offset(src_idx as isize), ptr.offset(dest_idx as isize), len);
+        ptr::copy(ptr.add(src_idx), ptr.add(dest_idx), len);
     }
 }
 
@@ -82,7 +82,7 @@ pub fn prepend<T: Copy>(elems: &[T], vec: &mut Vec<T>) {
             // Move the old elements down to the end.
             ptr::copy(
                 ptr,
-                ptr.offset(elems_len as isize),
+                ptr.add(elems_len),
                 old_len,
             );
             // Copy the input elements to the start
