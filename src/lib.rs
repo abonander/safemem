@@ -41,6 +41,11 @@ pub fn copy_over<T: Copy>(slice: &mut [T], src_idx: usize, dest_idx: usize, len:
     len_check!(slice, src_idx, len);
     len_check!(slice, dest_idx, len);
 
+    // At any point a Rust reference exists, the compiler is free to do this.
+    // So we explicitely add it to be caught by miri.
+    #[cfg(miri)]
+    slice.iter().copied().for_each(drop);
+
     let ptr = slice.as_mut_ptr();
 
     unsafe {
@@ -57,26 +62,39 @@ pub fn write_bytes(slice: &mut [u8], byte: u8) {
 
 /// Prepend `elems` to `vec`, resizing if necessary.
 ///
-/// ###Panics
+/// ### Panics
+///
 /// If `vec.len() + elems.len()` overflows.
 #[cfg(feature = "std")]
 pub fn prepend<T: Copy>(elems: &[T], vec: &mut Vec<T>) {
-    // Our overflow check occurs here, no need to do it ourselves.
-    vec.reserve(elems.len());
+    let elems_len = elems.len(); // `<= isize::MAX as usize`
+    if elems_len == 0 { return; }
 
-    let old_len = vec.len();
-    let new_len = old_len + elems.len();
-
-    unsafe {
-        vec.set_len(new_len);
+    let old_len = vec.len(); // `<= isize::MAX as usize`
+    if old_len == 0 {
+        // Prepend = append: delegate to Rust's stdlib implementation.
+        vec.extend_from_slice(elems);
+    } else {
+        // Our overflow check occurs here, no need to do it ourselves.
+        vec.reserve(elems_len);
+        let ptr = vec.as_mut_ptr();
+        unsafe {
+            // Move the old elements down to the end.
+            ptr::copy(
+                ptr,
+                ptr.offset(elems_len as isize),
+                old_len,
+            );
+            // Copy the input elements to the start
+            ptr::copy_nonoverlapping(
+                elems.as_ptr(),
+                ptr,
+                elems_len,
+            );
+            // Set the len *after* having initialized the elements.
+            vec.set_len(old_len + elems_len);
+        }
     }
-
-    // Move the old elements down to the end.
-    if old_len > 0 {
-        copy_over(vec, 0, elems.len(), old_len);
-    }
-
-    vec[..elems.len()].copy_from_slice(elems);
 }
 
 #[cfg(test)]
@@ -111,5 +129,15 @@ mod tests {
         let mut vec = vec![3, 4, 5];
         prepend(&[1, 2], &mut vec);
         assert_eq!(vec, &[1, 2, 3, 4, 5]);
+    }
+
+    /// Detect potential uninit values when running miri
+    #[test]
+    #[cfg(all(
+        feature = "std",
+        miri,
+    ))]
+    fn prepend_bool() {
+        prepend(&[true], &mut vec![false]);
     }
 }
