@@ -34,7 +34,7 @@ macro_rules! len_check (
 /// bounds.
 /// * If `src_idx + len` or `dest_idx + len` overflows.
 pub fn copy_over<T: Copy>(slice: &mut [T], src_idx: usize, dest_idx: usize, len: usize) {
-    if slice.len() == 0 { return; }
+    if slice.is_empty() { return; }
 
     idx_check!(slice, src_idx);
     idx_check!(slice, dest_idx);
